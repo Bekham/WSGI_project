@@ -1,6 +1,8 @@
 from jinja2 import Template
 import os
 
+from settings import static_url
+
 
 def render(template_name, folder='templates', **kwargs):
     """
@@ -10,7 +12,7 @@ def render(template_name, folder='templates', **kwargs):
     :return:
     """
     file_path = os.path.join(folder, template_name)
-
+    kwargs['static'] = static_url
     # Открываем шаблон по имени
     with open(file_path, encoding='utf-8') as f:
         # Читаем
