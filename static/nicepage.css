@@ -21413,7 +21413,7 @@ li.active > .u-button-style.u-text-active-none {
 .u-container-layout.u-container-layout.u-color-1-dark-3:before,
 .u-table-alt-color-1-dark-3 tr:nth-child(even) {
   color: #ffffff;
-  background-color: #292e33;
+  background-color: #425465;
 }
 .u-button-style.u-color-1-dark-3,
 .u-button-style.u-color-1-dark-3[class*="u-border-"] {
@@ -23538,7 +23538,7 @@ a.u-link.u-hover-color-5-base:hover {
 .u-button-style.u-palette-1-dark-3,
 .u-button-style.u-palette-1-dark-3[class*="u-border-"] {
   color: #ffffff !important;
-  background-color: #292e33 !important;
+  background-color: #70a19e !important;
 }
 .u-button-style.u-palette-1-dark-3:hover,
 .u-button-style.u-palette-1-dark-3[class*="u-border-"]:hover,
@@ -25017,12 +25017,12 @@ a.u-link.u-hover-palette-4:hover {
 .u-container-layout.u-container-layout.u-palette-4-light-1:before,
 .u-table-alt-palette-4-light-1 tr:nth-child(even) {
   color: #111111;
-  background-color: #72efe9;
+  background-color: #dfebea;
 }
 .u-button-style.u-palette-4-light-1,
 .u-button-style.u-palette-4-light-1[class*="u-border-"] {
   color: #111111 !important;
-  background-color: #72efe9 !important;
+  background-color: #dfebea !important;
 }
 .u-button-style.u-palette-4-light-1:hover,
 .u-button-style.u-palette-4-light-1[class*="u-border-"]:hover,
@@ -25070,12 +25070,12 @@ a.u-link.u-hover-palette-4-light-1:hover {
 .u-container-layout.u-container-layout.u-palette-4-light-2:before,
 .u-table-alt-palette-4-light-2 tr:nth-child(even) {
   color: #111111;
-  background-color: #adf6f2;
+  background-color: #647675;
 }
 .u-button-style.u-palette-4-light-2,
 .u-button-style.u-palette-4-light-2[class*="u-border-"] {
   color: #111111 !important;
-  background-color: #adf6f2 !important;
+  background-color: #647675 !important;
 }
 .u-button-style.u-palette-4-light-2:hover,
 .u-button-style.u-palette-4-light-2[class*="u-border-"]:hover,
@@ -29304,7 +29304,7 @@ li.active > a.u-button-style.u-button-style.u-border-active-palette-4 {
   stroke: #72efe9;
 }
 .u-button-style.u-border-palette-4-light-1 {
-  border-color: #72efe9 !important;
+  border-color: #151616 !important;
   color: #72efe9 !important;
   background-color: transparent !important;
 }

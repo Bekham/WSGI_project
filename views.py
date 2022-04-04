@@ -1,21 +1,27 @@
-from amazing_framework.templator import render
+from amazing_framework.view_base_class import ViewBaseClass
 
 
-class Index:
-    def __call__(self, request):
-        return '200 OK', render('index.html', minutes=request.get('minutes', None))
+class IndexView(ViewBaseClass):
+    title = 'Главная'
+    template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        super(IndexView, self).get_context_data(**kwargs)
+        self.context['minutes'] = self.request.get('minutes', None)
 
 
-class Contacts:
-    def __call__(self, request):
-        return '200 OK', 'contacts'
+class ContactsView(ViewBaseClass):
+    title = 'Контакты'
 
 
-class About:
-    def __call__(self, request):
-        return '200 OK', 'about'
+class AboutView(ViewBaseClass):
+    title = 'О нас'
 
 
-class Remember:
-    def __call__(self, request):
-        return '200 OK', render('remember.html', verify=request.get('verify', None))
+class RememberView(ViewBaseClass):
+    title = 'Напомнить мне'
+    template_name = 'remember.html'
+
+    def get_context_data(self, **kwargs):
+        super(RememberView, self).get_context_data(**kwargs)
+        self.context['verify'] = self.request.get('verify', None)

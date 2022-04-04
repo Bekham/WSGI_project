@@ -1,5 +1,5 @@
 from datetime import datetime
-from views import Index, Contacts, About, Remember
+from views import IndexView, ContactsView, AboutView, RememberView
 
 
 # data controller
@@ -13,8 +13,8 @@ def data_front(request):
 fronts = [data_front]
 
 routes = {
-    '/': Index(),
-    '/Contacts.html/': Contacts(),
-    '/About.html/': About(),
-    '/Remember.html/': Remember(),
+    '/': IndexView(),
+    '/Contact.html/': ContactsView(),
+    '/About.html/': AboutView(),
+    '/Remember.html/': RememberView(),
 }
