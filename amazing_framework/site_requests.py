@@ -41,10 +41,10 @@ class PostRequests:
     def get_wsgi_input_data(env) -> bytes:
         # получаем длину тела
         content_length_data = env.get('CONTENT_LENGTH')
-        print(f'ддлина - {type(content_length_data)}') # ддлина - <class 'str'>
+        # print(f'ддлина - {type(content_length_data)}') # ддлина - <class 'str'>
         # приводим к int
         content_length = int(content_length_data) if content_length_data else 0
-        print(content_length)
+        # print(content_length)
         # считываем данные, если они есть
         # print(f"-{type(env['wsgi.input'])}") -> <class '_io.BufferedReader'>
         # запускаем режим чтения
@@ -57,7 +57,7 @@ class PostRequests:
         if data:
             # декодируем данные
             data_str = data.decode(encoding='utf-8')
-            print(f'строка после декод - {data_str}')
+            # print(f'строка после декод - {data_str}')
             # собираем их в словарь
             result = self.parse_input_data(data_str)
         return result

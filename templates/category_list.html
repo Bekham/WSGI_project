@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block css %}
+<link rel="stylesheet" href="/{{static}}admin/nicepage.css" media="screen">
+<link rel="stylesheet" href="/{{static}}admin/category_list.css" media="screen">
+<script class="u-script" type="text/javascript" src="/{{static}}admin/jquery-1.9.1.min.js" defer=""></script>
+<script class="u-script" type="text/javascript" src="/{{static}}admin/nicepage.js" defer=""></script>
+{% endblock %}
+{% block header %}
+{% include "inc_header.html" %}
+{% endblock %}
+{% block content %}
+
+<section class="u-align-center u-clearfix u-section-1" id="sec-1180">
+    <div class="u-clearfix u-sheet u-sheet-1">
+        <h2 class="u-align-left u-text u-text-1">Admin - panel</h2>
+        <p class="u-align-left u-text u-text-2">Категории товаров</p>
+        <div class="u-expanded-width u-table u-table-responsive u-table-1">
+            <table class="u-table-entity u-table-entity-1">
+                <colgroup>
+                    <col width="21.6%">
+                    <col width="29.2%">
+                    <col width="20%">
+                    <col width="8.3%">
+                    <col width="20.9%">
+                </colgroup>
+                <thead class="u-align-center u-black u-table-header u-table-header-1">
+                <tr style="height: 38px;">
+                    <th class="u-align-center u-border-1 u-border-grey-30 u-table-cell">Название</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-2">Описание</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-3">Количество товаров</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-4">Видимость</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5">копировать</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5">удаление</th>
+                </tr>
+                </thead>
+                <tbody class="u-align-center u-table-body">
+                {% if objects_list|length > 0 %}
+                {% for item in objects_list %}
+                <tr style="height: 71px;">
+                    <td class="u-align-left u-first-column u-table-cell u-table-cell-9"><a
+                            href="/Admin/edit-category/?id={{item.id}}">{{item.name}}</a></td>
+                    <td class="u-table-cell u-text-black u-table-cell-9"> {{item.description}}</td>
+                    <td class="u-table-cell u-text-black">{{item.goods|length}}</td>
+                    <td class="u-table-cell u-text-black">
+                        {% if item.visible %}
+                        <span class="u-icon u-icon-2">
+                        <svg class="u-svg-content"
+                             viewBox="0 -46 417.81333 417"
+                             id="svg-ca86">
+                            <path
+                                    d="m159.988281 318.582031c-3.988281 4.011719-9.429687 6.25-15.082031 6.25s-11.09375-2.238281-15.082031-6.25l-120.449219-120.46875c-12.5-12.5-12.5-32.769531 0-45.246093l15.082031-15.085938c12.503907-12.5 32.75-12.5 45.25 0l75.199219 75.203125 203.199219-203.203125c12.503906-12.5 32.769531-12.5 45.25 0l15.082031 15.085938c12.5 12.5 12.5 32.765624 0 45.246093zm0 0"></path></svg><img></span>
+                        &nbsp;&nbsp;
+                        {% else %}
+                        Удалено
+                        {% endif %}
+                    </td>
+
+                    <td class="u-table-cell u-text-palette-1-base">
+                        <div>
+                            <a class="u-border-none u-btn u-button-style u-hover-palette-2-base u-palette-2-light-2 u-btn-1"
+                               href="/Admin/copy-category/?id={{item.id}}">Копировать</a>
+                        </div>
+
+                    </td>
+                    <td class="u-table-cell u-text-palette-1-base">
+                        <div>
+                            <a class="u-border-none u-btn u-button-style u-hover-palette-2-base u-palette-2-light-2 u-btn-1"
+                               href="/Admin/delete-category/?id={{item.id}}">Удалить</a>
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+            {% if objects_list|length < 1 %}
+            <h4 class="u-align-left u-text u-text-1">{{empty_list}}</h4>
+            {% endif %}
+            <a href="/Admin/CategoryCreate.html/" class="u-btn u-btn-submit u-button-style">Создать категорию<br>
+            </a>
+        </div>
+    </div>
+</section>
+<section class="u-align-center u-clearfix u-section-2" id="sec-eb98">
+    <div class="u-clearfix u-sheet u-sheet-1"></div>
+</section>
+
+{% endblock %}
+
+{% block footer %}
+{% include "inc_footer.html" %}
+{% endblock %}

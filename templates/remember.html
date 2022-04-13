@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block css %}
-    <link rel="stylesheet" href="/{{static}}nicepage.css" media="screen">
-    <link rel="stylesheet" href="/{{static}}Page-4.css" media="screen">
-    <script class="u-script" type="text/javascript" src="/{{static}}jquery-1.9.1.min.js" defer=""></script>
-    <script class="u-script" type="text/javascript" src="/{{static}}nicepage.js" defer=""></script>
+<link rel="stylesheet" href="/{{static}}nicepage.css" media="screen">
+<link rel="stylesheet" href="/{{static}}Page-4.css" media="screen">
+<script class="u-script" type="text/javascript" src="/{{static}}jquery-1.9.1.min.js" defer=""></script>
+<script class="u-script" type="text/javascript" src="/{{static}}nicepage.js" defer=""></script>
 {% endblock %}
 {% block header %}
-	{% include "inc_header.html" %}
+{% include "inc_header.html" %}
 {% endblock %}
 {% block content %}
 <section class="u-align-center u-clearfix u-gradient u-section-1" src="" id="sec-6a60">
@@ -54,7 +54,8 @@
                                     <div class="u-form-send-message u-form-send-success">Thank you! Your message has
                                         been sent.
                                     </div>
-                                    <div class="u-form-send-error u-form-send-message" style="display: none;">Спасибо! Вам Будет отправлено сообщение!.
+                                    <div class="u-form-send-error u-form-send-message" style="display: none;">Спасибо!
+                                        Вам Будет отправлено сообщение!.
                                     </div>
                                     <input type="hidden" value="" name="recaptchaResponse" wfd-invisible="true">
                                 </form>
@@ -69,5 +70,5 @@
 {% endblock %}
 
 {% block footer %}
-	{% include "inc_footer.html" %}
+{% include "inc_footer.html" %}
 {% endblock %}
