@@ -23,12 +23,39 @@
                 <div class="u-form-group u-form-name">
                     <label for="name-dbf0" class="u-label">Название категории</label>
                     <input type="text" placeholder="Введите название категории" id="name-dbf0" name="category_name"
-                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required="" value="{{category.name}}">
+                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required=""
+                           value="{{category.name}}">
                 </div>
                 <div class="u-form-email u-form-group">
                     <label for="name-dbf0" class="u-label">Описание</label>
                     <input type="text" placeholder="Описание категории" id="email-dbf0" name="category_desc"
-                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required="" value="{{category.description}}">
+                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required=""
+                           value="{{category.description}}">
+                </div>
+                <div class="u-form-email u-form-group">
+                    <label for="name-dbf0" class="u-label">Родительская категория</label>
+                    <select name="parent_category" class="u-label">
+                        {% if category.category %}
+
+                        <option value="{{category.id}}">{{category.category.name}}</option>
+
+                        {% else %}
+                        <option value="0">нет</option>
+                        {% endif %}
+
+                        {% for item in categories %}
+                        {% if item.id != category.id %}
+                        {% if item.name != category.category.name %}
+                        {% if item.category.id != category.id %}
+                        <option value="{{item.id}}">{{item.name}}</option>
+                        {% endif %}
+                        {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                        {% if category.category %}
+                        <option value="0">нет</option>
+                        {% endif %}
+                    </select>
                 </div>
                 <div class="u-align-left u-form-group u-form-submit">
                     <a href="#" class="u-btn u-btn-submit u-button-style">Сохранить<br>
@@ -36,10 +63,10 @@
                     <input type="submit" value="submit" class="u-form-control-hidden">
 
                 </div>
-<!--                <div class="u-form-send-message u-form-send-success"> Спасибо! Ваше сообщение отправлено.</div>-->
-<!--                <div class="u-form-send-error u-form-send-message"> Отправка не удалась. Пожалуйста, исправьте ошибки и-->
-<!--                    попробуйте еще раз.-->
-<!--                </div>-->
+                <!--                <div class="u-form-send-message u-form-send-success"> Спасибо! Ваше сообщение отправлено.</div>-->
+                <!--                <div class="u-form-send-error u-form-send-message"> Отправка не удалась. Пожалуйста, исправьте ошибки и-->
+                <!--                    попробуйте еще раз.-->
+                <!--                </div>-->
                 <!--            <input type="hidden" value="" name="recaptchaResponse">-->
             </form>
             <div class="u-align-left u-form-group" style="padding-left: 10px">

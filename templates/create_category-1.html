@@ -26,6 +26,15 @@
               <label for="name-dbf0" class="u-label">Описание</label>
               <input type="text" placeholder="Описание категории" id="email-dbf0" name="category_desc" class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required="">
             </div>
+              <div class="u-form-email u-form-group">
+              <label for="name-dbf0" class="u-label">Родительская категория</label>
+              <select name="category" class="u-label">
+                            <option value="0">---</option>
+                            {% for item in categories %}
+                            <option value="{{item.id}}">{{item.name}}</option>
+                            {% endfor %}
+                        </select>
+            </div>
             <div class="u-align-left u-form-group u-form-submit">
               <a href="#" class="u-btn u-btn-submit u-button-style">Сохранить<br>
               </a>

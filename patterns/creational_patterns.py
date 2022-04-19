@@ -1,4 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
+
+from patterns.structural_patterns import Debug
 from settings import TEMPLATE, STATIC_URL
 import copy
 import quopri
@@ -38,7 +40,7 @@ class GoodsPrototype:
         return copy.deepcopy(self)
 
 class Goods(GoodsPrototype):
-    auto_id = 0
+    auto_id = 1
 
     def __init__(self, name, description, image, discount, cost, visible, category):
         self.id = Goods.auto_id
@@ -63,7 +65,7 @@ class Goods(GoodsPrototype):
 
 class Category(GoodsPrototype):
     # реестр
-    auto_id = 0
+    auto_id = 1
 
     def __init__(self, name, description, visible, category):
         self.id = Category.auto_id
@@ -118,6 +120,8 @@ class Engine:
             if self.categories[i].id == update_category['id']:
                 self.categories[i].name = update_category['name']
                 self.categories[i].description = update_category['desc']
+                self.categories[i].category = update_category['parent_category']
+
 
     def delete_category(self, delete_category):
         del_num = None
@@ -228,9 +232,11 @@ class ViewBaseClass:
     def __init__(self):
         self.context = {}
 
+    @Debug()
     def __call__(self, request=None, *args, **kwargs):
         self.request = request
         self.get_context_data(**kwargs)
+        self.add_context_data(**kwargs)
         if self.title and self.template_name:
             return '200 OK', self.render()
         elif self.title:
@@ -243,11 +249,16 @@ class ViewBaseClass:
             return '404 WHAT', '404 PAGE Not Found'
 
     def get_context_data(self, **kwargs):
-        for key, item in kwargs:
-            self.context[key] = item
+
         self.context['title'] = self.title
         self.context['static'] = self.static
+        if kwargs:
+            for key, item in kwargs:
+                self.context[key] = item
         return self.context
+
+    def add_context_data(self, **kwargs):
+        pass
 
     def render(self):
         # file_path = os.path.join(self.template_name, self.title)

@@ -28,6 +28,7 @@
                     <th class="u-align-center u-border-1 u-border-grey-30 u-table-cell">Название</th>
                     <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-2">Описание</th>
                     <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-3">Количество товаров</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-3">Родительская категория</th>
                     <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-4">Видимость</th>
                     <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5">копировать</th>
                     <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5">удаление</th>
@@ -41,6 +42,13 @@
                             href="/Admin/edit-category/?id={{item.id}}">{{item.name}}</a></td>
                     <td class="u-table-cell u-text-black u-table-cell-9"> {{item.description}}</td>
                     <td class="u-table-cell u-text-black">{{item.goods|length}}</td>
+                    <td class="u-table-cell u-text-black u-table-cell-9">
+                        {% if item.category.id %}
+                        {{item.category.name}}
+                        {% else %}
+                        нет
+                        {% endif %}
+                    </td>
                     <td class="u-table-cell u-text-black">
                         {% if item.visible %}
                         <span class="u-icon u-icon-2">
