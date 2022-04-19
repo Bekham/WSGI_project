@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block css %}
+	<link rel="stylesheet" href="/{{static}}nicepage.css" media="screen">
+    <link rel="stylesheet" href="/{{static}}index.css" media="screen">
+    <script class="u-script" type="text/javascript" src="/{{static}}jquery-1.9.1.min.js" defer=""></script>
+    <script class="u-script" type="text/javascript" src="/{{static}}nicepage.js" defer=""></script>
+{% endblock %}
+{% block header %}
+	{% include "inc_header.html" %}
+{% endblock %}
+{% block content %}
+<section class="u-align-center u-clearfix u-image u-shading u-section-1" data-image-width="1920"
+         data-image-height="1080" id="sec-4aa3">
+    <div class="u-clearfix u-sheet u-sheet-1">
+        <h2 class="u-text u-text-default u-text-1" data-animation-name="fadeIn" data-animation-duration="1000"
+            data-animation-direction="Up"> Скоро будет нечто невероятное! </h2>
+        <p class="u-text u-text-default u-text-2" data-animation-name="fadeIn" data-animation-duration="1000"
+           data-animation-direction="Up">Следите за нашим проектом и Вы будете поражены!</p>
+        <div class="u-countdown u-countdown-1" data-type="to-time"
+             data-for="per-visitor" data-time-left={{minutes}} data-timer-id="1ce0" data-target-number="1"
+             data-direction="down" data-frequency="1s"
+             data-after-count="none" data-redirect-url="https://">
+            <div class="u-countdown-wrapper u-spacing-30">
+                <div class="u-countdown-item u-countdown-years u-hidden u-radius-22 u-spacing-10 u-white u-countdown-item-1">
+                    <div class="u-countdown-counter u-countdown-counter-1">
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-hidden u-text-grey-75">0</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-1">Years</div>
+                </div>
+                <div class="u-countdown-separator u-hidden u-text-grey-75 u-countdown-separator-1"></div>
+                <div class="u-countdown-days u-countdown-item u-radius-22 u-spacing-10 u-white u-countdown-item-2">
+                    <div class="u-countdown-counter u-countdown-counter-2">
+                        <div class="u-countdown-number u-text-grey-75">6</div>
+                        <div class="u-countdown-number u-text-grey-75">3</div>
+                        <div class="u-countdown-number u-hidden u-text-grey-75">9</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-2">Days</div>
+                </div>
+                <div class="u-countdown-separator u-text-grey-75 u-countdown-separator-2"></div>
+                <div class="u-countdown-hours u-countdown-item u-radius-22 u-spacing-10 u-white u-countdown-item-3">
+                    <div class="u-countdown-counter u-countdown-counter-3">
+                        <div class="u-countdown-number u-text-grey-75">1</div>
+                        <div class="u-countdown-number u-text-grey-75">1</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-3">Hours</div>
+                </div>
+                <div class="u-countdown-separator u-text-grey-75 u-countdown-separator-3"></div>
+                <div class="u-countdown-item u-countdown-minutes u-radius-22 u-spacing-10 u-white u-countdown-item-4">
+                    <div class="u-countdown-counter u-countdown-counter-4">
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-4">Minutes</div>
+                </div>
+                <div class="u-countdown-separator u-text-grey-75 u-countdown-separator-4"></div>
+                <div class="u-countdown-item u-countdown-seconds u-radius-22 u-spacing-10 u-white u-countdown-item-5">
+                    <div class="u-countdown-counter u-countdown-counter-5">
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-5">Seconds</div>
+                </div>
+                <div class="u-countdown-separator u-hidden u-text-grey-75 u-countdown-separator-5"></div>
+                <div class="u-countdown-item u-countdown-numbers u-hidden u-radius-22 u-spacing-10 u-white u-countdown-item-6">
+                    <div class="u-countdown-counter u-countdown-counter-6">
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-text-grey-75">1</div>
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                        <div class="u-countdown-number u-text-grey-75">0</div>
+                    </div>
+                    <div class="u-countdown-label u-countdown-label-6">Items</div>
+                </div>
+            </div>
+            <div class="u-countdown-message u-hidden">
+                <p>Sorry, the time is up.</p>
+            </div>
+        </div>
+        </p>
+        <a href="/Remember.html"
+           class="u-align-center-lg u-align-center-md u-align-center-sm u-align-center-xl u-border-2 u-border-active-white u-border-hover-white u-border-white u-btn u-btn-round u-button-style u-hover-white u-none u-radius-8 u-btn-2">Напомнить мне
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+	{% include "inc_footer.html" %}
+{% endblock %}

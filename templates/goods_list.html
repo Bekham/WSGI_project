@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block css %}
+<link rel="stylesheet" href="/{{static}}admin/nicepage.css" media="screen">
+<link rel="stylesheet" href="/{{static}}admin/goods_list.css" media="screen">
+<script class="u-script" type="text/javascript" src="/{{static}}admin/jquery-1.9.1.min.js" defer=""></script>
+<script class="u-script" type="text/javascript" src="/{{static}}admin/nicepage.js" defer=""></script>
+{% endblock %}
+{% block header %}
+{% include "inc_header.html" %}
+{% endblock %}
+{% block content %}
+
+<section class="u-align-center u-clearfix u-section-1" id="sec-1180">
+    <div class="u-clearfix u-sheet u-sheet-1">
+        <h2 class="u-align-left u-text u-text-1">Admin - panel</h2>
+        <p class="u-align-left u-text u-text-2">Список товаров</p>
+        <div class="u-expanded-width u-table u-table-responsive u-table-1">
+            <table class="u-table-entity u-table-entity-1">
+                <colgroup>
+                    <col width="15.1%">
+                    <col width="22.6%">
+                    <col width="12.2%">
+                    <col width="17.2%">
+                    <col width="11.6%">
+                    <col width="10.7%">
+                    <col width="10.6%">
+                </colgroup>
+                <thead class="u-align-center u-black u-table-header u-table-header-1">
+                <tr style="height: 39px;">
+                    <th class="u-align-left u-border-1 u-border-grey-30 u-table-cell">Название</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-2">Категория</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-3">ОпИСАНИЕ</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-4">Изображение</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5">Скидка</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-5"> Стоимость, Руб</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-6">видимость</th>
+<!--                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-8">редактировать</th>-->
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-8">копировать</th>
+                    <th class="u-border-1 u-border-grey-30 u-table-cell u-table-cell-8">удалить</th>
+                </tr>
+                </thead>
+                <tbody class="u-align-center u-table-body">
+                {% if objects_list|length > 0 %}
+                {% for item in objects_list %}
+                <tr style="height: 59px;">
+                    <td class="u-align-left u-table-cell u-table-cell-15">
+                        <a href="/Admin/edit-good/?id={{item.id}}">{{item.name}}</a>
+                    </td>
+                    <td class="u-table-cell u-table-cell-2">{{item.category.name}}</td>
+                    <td class="u-table-cell u-table-cell-16">{{item.description}}</td>
+                    <td class="u-table-cell u-table-cell-17">{{item.image}}</td>
+                    <td class="u-table-cell u-table-cell-18">{{item.discount}}</td>
+                    <td class="u-table-cell u-table-cell-19">{{item.cost}}</td>
+
+                    <td class="u-table-cell u-table-cell-20">
+                        {% if item.visible %}
+                        &nbsp; <span class="u-icon u-icon-2">
+                        <svg class="u-svg-content" viewBox="0 -46 417.81333 417"
+                                                                  id="svg-ca86"><path
+                            d="m159.988281 318.582031c-3.988281 4.011719-9.429687 6.25-15.082031 6.25s-11.09375-2.238281-15.082031-6.25l-120.449219-120.46875c-12.5-12.5-12.5-32.769531 0-45.246093l15.082031-15.085938c12.503907-12.5 32.75-12.5 45.25 0l75.199219 75.203125 203.199219-203.203125c12.503906-12.5 32.769531-12.5 45.25 0l15.082031 15.085938c12.5 12.5 12.5 32.765624 0 45.246093zm0 0"></path></svg><img></span>
+                        &nbsp;
+                        {% else %}
+                        Удалено
+                        {% endif %}
+                    </td>
+
+                    <td class="u-table-cell u-table-cell-21">
+                        <a class="u-btn u-button-style u-hover-palette-2-base u-palette-2-light-2 u-btn-2" href="/Admin/copy-good/?id={{item.id}}">копировать</a>
+                    </td>
+                    <td class="u-table-cell u-table-cell-21">
+                        <a class="u-btn u-button-style u-hover-palette-2-base u-palette-2-light-2 u-btn-2" href="/Admin/delete-good/?id={{item.id}}">удалить</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+
+                </tbody>
+            </table>
+            {% if objects_list|length < 1 %}
+            <h4 class="u-align-left u-text u-text-1">{{empty_list}}</h4>
+            {% endif %}
+            <a href="/Admin/GoodsCreate.html/" class="u-btn u-btn-submit u-button-style">Добавить товар<br>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block footer %}
+{% include "inc_footer.html" %}
+{% endblock %}
