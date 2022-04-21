@@ -30,11 +30,15 @@ class PostRequests:
         result = {}
         if data:
             # делим параметры через &
+
             params = data.split('&')
             for item in params:
                 # делим ключ и значение через =
                 k, v = item.split('=')
-                result[k] = v
+                if k in result.keys():
+                    result[k] = f'{result[k]}_{v}'
+                else:
+                    result[k] = v
         return result
 
     @staticmethod

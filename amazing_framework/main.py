@@ -34,6 +34,7 @@ class AmazingFramework:
         request['method'] = method
         if method == 'POST':
             data = PostRequests().get_request_params(environ)
+
             request['data'] = data
             print(f'Нам пришёл post-запрос: {AmazingFramework.decode_value(data)}')
             request['verify'] = True

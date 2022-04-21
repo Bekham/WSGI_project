@@ -1,23 +1,31 @@
-from jinja2 import Environment, FileSystemLoader
 
-from patterns.structural_patterns import Debug
-from settings import TEMPLATE, STATIC_URL
+
+from patterns.behavioral_patterns import Subject, EmailNotifier, SmsNotifier, ConsoleWriter
 import copy
 import quopri
 
 # абстрактный пользователь
-class User:
-    pass
 
+
+
+class User:
+    def __init__(self, name):
+        self.name = name
 
 # гость
 class Guest(User):
-    pass
+    def __init__(self, name, goods):
+        self.admin = False
+        self.goods = goods
+        super().__init__(name)
 
 
 # админ
 class Admin(User):
-    pass
+    def __init__(self, name, goods):
+        self.admin = True
+        self.goods = goods
+        super().__init__(name)
 
 
 # порождающий паттерн Абстрактная фабрика - фабрика пользователей
@@ -29,8 +37,8 @@ class UserFactory:
 
     # порождающий паттерн Фабричный метод
     @classmethod
-    def create(cls, type_):
-        return cls.types[type_]()
+    def create(cls, type_, name, goods):
+        return cls.types[type_](name, goods)
 
 
 # порождающий паттерн Прототип - Курс
@@ -39,7 +47,7 @@ class GoodsPrototype:
     def clone(self):
         return copy.deepcopy(self)
 
-class Goods(GoodsPrototype):
+class Goods(GoodsPrototype, Subject):
     auto_id = 1
 
     def __init__(self, name, description, image, discount, cost, visible, category):
@@ -53,6 +61,8 @@ class Goods(GoodsPrototype):
         self.visible = visible
         self.category = category
         self.category.goods.append(self)
+        self.notify_users = []
+        super().__init__()
 
     def __call__(self, *args, **kwargs):
         if not self.category.visible:
@@ -61,6 +71,9 @@ class Goods(GoodsPrototype):
     def clone(self):
         Category.auto_id += 1
         return super().clone()
+
+    def add_user_to_notify(self, user):
+        self.notify_users.append(user)
 
 
 class Category(GoodsPrototype):
@@ -94,8 +107,12 @@ class Engine:
         self.categories = []
 
     @staticmethod
-    def create_user(type_):
-        return UserFactory.create(type_)
+    def create_user(type_, name, goods):
+        new_user = UserFactory.create(type_, name, goods)
+        if len(goods):
+            for good in goods:
+                good.add_user_to_notify(user=new_user)
+        return new_user
 
     @staticmethod
     def create_category(name, description='', visible=True, category=None):
@@ -115,6 +132,15 @@ class Engine:
                 return True
         return False
 
+    def find_user_by_name(self, name):
+        for item in self.admins:
+            if item.name == name:
+                return item
+        for item in self.guests:
+            if item.name == name:
+                return item
+        return False
+
     def update_category(self, update_category):
         for i in range(len(self.categories)):
             if self.categories[i].id == update_category['id']:
@@ -122,9 +148,36 @@ class Engine:
                 self.categories[i].description = update_category['desc']
                 self.categories[i].category = update_category['parent_category']
 
+    def update_user(self, update_user, old_profile):
+        goods_list = []
+        if len(update_user['good_sub']):
+            for item in update_user['good_sub']:
+                goods_list.append(self.find_good_by_id(int(item)))
+        user_num = 0
+        if not old_profile.admin:
+            for i in range(len(self.guests)):
+                if old_profile.name == self.guests[i].name:
+                    user_num = i
+            self.guests.pop(user_num)
+        else:
+            for i in range(len(self.admins)):
+                if old_profile.name == self.admins[i].name:
+                    user_num = i
+            self.admins.pop(user_num)
+        if update_user['admin']:
+            new = self.create_user(type_='admin',
+                                    name=self.decode_value(update_user['name']),
+                                    goods=goods_list)
+            self.admins.append(new)
+        else:
+            new = self.create_user(type_='guest',
+                                   name=self.decode_value(update_user['name']),
+                                   goods=goods_list)
+            self.guests.append(new)
+
 
     def delete_category(self, delete_category):
-        del_num = None
+        # del_num = None
         for i in range(len(self.categories)):
             if self.categories[i].id == delete_category.id:
                 self.categories[i].visible = False
@@ -154,17 +207,24 @@ class Engine:
                 return item
         raise Exception(f'Нет товара с id = {id}')
 
-    def update_good(self, update_good):
+    def update_good(self, update_good, old_good):
         for i in range(len(self.goods)):
             if self.goods[i].id == update_good['id']:
+                if update_good['price'] != old_good.cost:
+                    self.goods[i].notify({'price': {'old':old_good.cost,
+                                                    'new':update_good['price']}})
+                elif update_good['discount'] != old_good.discount:
+                    self.goods[i].notify({'discount': {'old': old_good.discount,
+                                                    'new': update_good['discount']}})
                 self.goods[i].name = update_good['name']
                 self.goods[i].description = update_good['desc']
                 self.goods[i].cost = update_good['price']
                 self.goods[i].discount = update_good['discount']
                 self.goods[i].category = self.find_category_by_id(int(update_good['category']))
 
+
     def delete_good(self, delete_good):
-        del_num = None
+        # del_num = None
         for i in range(len(self.goods)):
             if self.goods[i].id == delete_good.id:
                 self.goods[i].visible = False
@@ -176,6 +236,11 @@ class Engine:
         val_b = bytes(val.replace('%', '=').replace("+", " "), 'UTF-8')
         val_decode_str = quopri.decodestring(val_b)
         return val_decode_str.decode('UTF-8')
+
+    def get_guest(self, name) -> Guest:
+        for item in self.guests:
+            if item.name == name:
+                return item
 
     def create_test_data(self):
         new_category = self.create_category(name='Test',
@@ -191,7 +256,13 @@ class Engine:
                          cost=1234,
                          category=self.categories[0]
                          )
+        new_good.observers.append(EmailNotifier())
+        new_good.observers.append(SmsNotifier())
         self.goods.append(new_good)
+        new_admin = self.create_user('admin', name='admin', goods=[new_good])
+        self.admins.append(new_admin)
+        new_guest = self.create_user('guest', name='user', goods=[])
+        self.guests.append(new_guest)
 
 # порождающий паттерн Синглтон
 class SingletonByName(type):
@@ -215,56 +286,16 @@ class SingletonByName(type):
 
 class Logger(metaclass=SingletonByName):
 
-    def __init__(self, name):
+    def __init__(self, name, writer=ConsoleWriter()):
         self.name = name
+        self.writer = writer
 
-    @staticmethod
-    def log(text):
-        print('log--->', text)
+    def log(self, text):
+        text = f'log---> {text}'
+        self.writer.write(text)
+
+# поведенческий паттерн - Шаблонный метод
 
 
-class ViewBaseClass:
-    title = None
-    folder = TEMPLATE
-    template_name = None
-    static = STATIC_URL
 
-    def __init__(self):
-        self.context = {}
 
-    @Debug()
-    def __call__(self, request=None, *args, **kwargs):
-        self.request = request
-        self.get_context_data(**kwargs)
-        self.add_context_data(**kwargs)
-        if self.title and self.template_name:
-            return '200 OK', self.render()
-        elif self.title:
-            html_text = '<head>' \
-                            '<meta charset="utf-8">' \
-                            '</head>' \
-                            f'<body>{self.title}</body>'
-            return '200 OK', html_text
-        else:
-            return '404 WHAT', '404 PAGE Not Found'
-
-    def get_context_data(self, **kwargs):
-
-        self.context['title'] = self.title
-        self.context['static'] = self.static
-        if kwargs:
-            for key, item in kwargs:
-                self.context[key] = item
-        return self.context
-
-    def add_context_data(self, **kwargs):
-        pass
-
-    def render(self):
-        # file_path = os.path.join(self.template_name, self.title)
-        # kwargs['static'] = static_url
-        # Открываем шаблон по имени
-        env = Environment()
-        env.loader = FileSystemLoader(self.folder)
-        template = env.get_template(self.template_name)
-        return template.render(self.context)
