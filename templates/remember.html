@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block css %}
+<link rel="stylesheet" href="/{{static}}nicepage.css" media="screen">
+<link rel="stylesheet" href="/{{static}}Page-4.css" media="screen">
+<script class="u-script" type="text/javascript" src="/{{static}}jquery-1.9.1.min.js" defer=""></script>
+<script class="u-script" type="text/javascript" src="/{{static}}nicepage.js" defer=""></script>
+{% endblock %}
+{% block header %}
+{% include "inc_header.html" %}
+{% endblock %}
+{% block content %}
+<section class="u-align-center u-clearfix u-gradient u-section-1" src="" id="sec-6a60">
+    <div class="u-clearfix u-sheet u-valign-middle-lg u-valign-middle-md u-valign-middle-xl u-sheet-1">
+        <div class="u-clearfix u-layout-wrap u-layout-wrap-1">
+            <div class="u-gutter-0 u-layout">
+                <div class="u-layout-row">
+                    <div class="u-container-style u-layout-cell u-palette-4-light-2 u-shape-rectangle u-size-23 u-layout-cell-1">
+                        <div class="u-container-layout u-valign-middle-lg u-valign-middle-md u-valign-middle-xl u-container-layout-1">
+                            <img class="u-image u-image-contain u-image-1" src="/{{static}}images/dd.png"
+                                 data-image-width="400"
+                                 data-image-height="400">
+                        </div>
+                    </div>
+                    <div class="u-align-center u-container-style u-layout-cell u-size-37 u-white u-layout-cell-2">
+                        <div class="u-container-layout u-container-layout-2">
+                            <div class="u-form u-form-1">
+                                <form action="" method="POST"
+                                      class="u-clearfix u-form-spacing-27 u-form-vertical u-inner-form"
+                                      style="padding: 0px;" source="email" name="form">
+                                    <input type="hidden" id="siteId" name="siteId" value="1673643" wfd-invisible="true">
+                                    <input type="hidden" id="pageId" name="pageId" value="1673649" wfd-invisible="true">
+                                    <div class="u-form-group u-form-name u-form-group-1">
+                                        <label for="name-30a4" class="u-form-control-hidden u-label"
+                                               wfd-invisible="true">Name</label>
+                                        <input type="text" placeholder="логин" id="name-30a4" name="name"
+                                               class="u-border-2 u-border-grey-10 u-grey-10 u-input u-input-rectangle u-radius-50 u-input-1"
+                                               required="">
+                                    </div>
+                                    <div class="u-form-email u-form-group u-form-group-2">
+                                        <label for="email-cd2c" class="u-form-control-hidden u-label"
+                                               wfd-invisible="true"></label>
+                                        <input type="email" id="email-cd2c" name="email"
+                                               class="u-border-2 u-border-grey-10 u-grey-10 u-input u-input-rectangle u-radius-50 u-input-2"
+                                               required="" placeholder="email">
+                                    </div>
+                                    <div class="u-align-left u-form-group u-form-submit u-form-group-3">
+                                        <a href="#"
+                                           class="u-active-palette-1-light-1 u-border-1 u-border-active-palette-1-light-1 u-border-hover-palette-1-light-1 u-border-palette-4-light-1 u-btn u-btn-round u-btn-submit u-button-style u-hover-palette-1-light-1 u-palette-4-light-1 u-radius-50 u-btn-1">напомнить
+                                            мне<br>
+                                        </a>
+                                        <input type="submit" value="submit" class="u-form-control-hidden"
+                                               wfd-invisible="true">
+                                    </div>
+                                    <div class="u-form-send-message u-form-send-success">Thank you! Your message has
+                                        been sent.
+                                    </div>
+                                    <div class="u-form-send-error u-form-send-message" style="display: none;">Спасибо!
+                                        Вам Будет отправлено сообщение!.
+                                    </div>
+                                    <input type="hidden" value="" name="recaptchaResponse" wfd-invisible="true">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+{% include "inc_footer.html" %}
+{% endblock %}

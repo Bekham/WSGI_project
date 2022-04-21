@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block css %}
+<link rel="stylesheet" href="/{{static}}admin/nicepage.css" media="screen">
+<link rel="stylesheet" href="/{{static}}admin/create_goods-1.css" media="screen">
+<script class="u-script" type="text/javascript" src="/{{static}}admin/jquery-1.9.1.min.js" defer=""></script>
+<script class="u-script" type="text/javascript" src="/{{static}}admin/nicepage.js" defer=""></script>
+{% endblock %}
+{% block header %}
+{% include "inc_header.html" %}
+{% endblock %}
+{% block content %}
+<section class="u-align-center u-clearfix u-section-1" id="sec-1180">
+    <div class="u-clearfix u-sheet u-sheet-1">
+        <h2 class="u-align-left u-text u-text-1" style="padding-left: 10px">Admin - panel</h2>
+        <p class="u-align-left u-text u-text-2" style="padding-left: 10px">Товары - Добавление товара</p>
+        <div class="u-expanded-width u-form u-form-1">
+            <form action="" method="POST" class="u-clearfix u-form-spacing-10 u-form-vertical u-inner-form"
+                  source="email" name="form" style="padding: 10px;">
+                <!--            <input type="hidden" id="siteId" name="siteId" value="1673643">-->
+                <!--            <input type="hidden" id="pageId" name="pageId" value="1751084">-->
+                <div class="u-form-group u-form-name">
+                    <label for="name-dbf0" class="u-label">Название товара</label>
+                    <input type="text" placeholder="Введите название категории" id="name-dbf0" name="good_name"
+                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required="">
+                </div>
+                <div class="u-form-name u-form-group">
+                    <label for="name-dbf0" class="u-label">Описание товара</label>
+                    <input type="text" placeholder="Описание товара" id="desc-dbf0" name="good_desc"
+                           class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white" required="">
+                </div>
+                <div class="u-expanded-width u-form u-form-2 u-form-horizontal">
+                    <div class="u-form-group u-form-group-4">
+                        <label for="text-109c" class="u-label">Стоимость</label>
+                        <input type="text" placeholder="" id="text-109c" name="good_price"
+                               class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white">
+                    </div>
+                    <div class="u-form-group u-form-group-5">
+                        <label for="text-0b82" class="u-label">Скидка</label>
+                        <input type="text" placeholder="" id="text-0b82" name="good_discount"
+                               class="u-border-1 u-border-grey-30 u-input u-input-rectangle u-white">
+                    </div>
+                    <div class="u-form-group u-form-group-5">
+                        <label for="text-0b82" class="u-label">Категория</label>
+
+                        <select name="category" class="u-label">
+                            <option value="0">---</option>
+                            {% for item in categories %}
+                            <option value="{{item.id}}">{{item.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <div class="u-align-left u-form-group u-form-submit u-form-group-3">
+                    <br>
+                    <a href="" class="u-btn u-btn-submit u-button-style">Сохранить<br>
+                    </a>
+                    <input type="submit" value="Сохранить" class="u-form-control-hidden">
+                </div>
+<!--                <div class="u-form-send-message u-form-send-success"> Спасибо! Ваше сообщение отправлено.</div>-->
+<!--                <div class="u-form-send-error u-form-send-message"> Отправка не удалась. Пожалуйста, исправьте ошибки и-->
+<!--                    попробуйте еще раз.-->
+<!--                </div>-->
+                <!--            <input type="hidden" value="" name="recaptchaResponse">-->
+            </form>
+            <div class="u-align-left u-form-group" style="padding-left: 10px">
+                <a href="/Admin/GoodsList.html" class="u-btn u-button-style">Назад<br>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block footer %}
+{% include "inc_footer.html" %}
+{% endblock %}
