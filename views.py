@@ -1,10 +1,11 @@
+from patterns.architectural_system_pattern_unit_of_work import UnitOfWork
 from patterns.behavioral_patterns import ListView, CreateView, TemplateView, EmailNotifier, SmsNotifier, BaseSerializer
-from patterns.creational_patterns import Engine, Logger
+from patterns.creational_patterns import Engine, Logger, MapperRegistry
 from patterns.structural_patterns import AppRoute, Debug
 
 site = Engine()
 logger = Logger('main')
-site.create_test_data()
+
 email_notifier = EmailNotifier()
 sms_notifier = SmsNotifier()
 routes = {}
@@ -254,33 +255,36 @@ class UsersListView(ListView):
             self.context['empty_list'] = 'Пользователи еще не созданы'
         return super().__call__(self, **kwargs)
 
-    @AppRoute(routes=routes, url='/Admin/UsersCreate.html/')
-    class CategoryCreateView(CreateView):
-        title = 'Добавление пользователя'
-        template_name = 'create_user-1.html'
+@AppRoute(routes=routes, url='/Admin/UsersCreate.html/')
+class CategoryCreateView(CreateView):
+    title = 'Добавление пользователя'
+    template_name = 'create_user-1.html'
 
-        def create_obj(self, data):
-            if data['user_name'] and not site.find_user_by_name(data['user_name']):
-                goods = []
+    def create_obj(self, data):
+        if data['user_name'] and not site.find_user_by_name(data['user_name']):
+            goods = []
+            try:
                 if data['good_sub']:
                     goods_id = data['good_sub'].split('_')
                     for good_id in goods_id:
                         if good_id != '---':
                             goods.append(site.find_good_by_id(int(good_id)))
+            except KeyError:
+                pass
 
-                if int(data['admin']):
-                    new_user = site.create_user(type_='admin',
-                                                name=site.decode_value(data['user_name']),
-                                                goods=goods)
-                    site.admins.append(new_user)
-                else:
-                    new_user = site.create_user(type_='guest',
-                                                name=site.decode_value(data['user_name']),
-                                                goods=goods)
-                    site.guests.append(new_user)
+            if int(data['admin']):
+                new_user = site.create_user(type_='admin',
+                                            name=site.decode_value(data['user_name']),
+                                            goods=goods)
+                site.admins.append(new_user)
+            else:
+                new_user = site.create_user(type_='guest',
+                                            name=site.decode_value(data['user_name']),
+                                            goods=goods)
+                site.guests.append(new_user)
 
-        def add_context_data(self, **kwargs):
-            self.context['goods'] = site.goods
+    def add_context_data(self, **kwargs):
+        self.context['goods'] = site.goods
 
 
 @AppRoute(routes=routes, url='/Admin/edit-user/')
@@ -311,8 +315,39 @@ class CategoryEditView(CreateView):
         self.context['user'] = user
         self.context['goods'] = site.goods
 
-    @AppRoute(routes=routes, url='/api/')
-    class GoodsApi:
-        @Debug()
-        def __call__(self, request):
-            return '200 OK', BaseSerializer(site.goods).save()
+@AppRoute(routes=routes, url='/Admin/delete-user/')
+class UsersDeleteView(TemplateView):
+    title = 'Список пользователей'
+    template_name = 'users_list.html'
+    queryset = []
+
+    def __call__(self, request=None, *args, **kwargs):
+        if request['method'] == 'GET':
+            data = request['request_params']
+            del_user = site.find_user_by_name((data['name']))
+            if del_user:
+                site.delete_user(del_user)
+        # self.add_context_data(site.admins)
+        # self.add_context_data(site.guests)
+        if not len(self.queryset):
+            self.context['empty_list'] = 'Пользователи еще не созданы'
+        self.context['objects_list'] = self.queryset
+        return super().__call__(self, **kwargs)
+
+    def add_context_data(self, **kwargs):
+        admin_list = site.admins
+        guest_list = site.guests
+        if admin_list and admin_list not in self.queryset:
+            self.queryset.append(admin_list)
+        if guest_list and guest_list not in self.queryset:
+            self.queryset.append(guest_list)
+
+
+
+
+
+@AppRoute(routes=routes, url='/api/')
+class GoodsApi:
+    @Debug()
+    def __call__(self, request):
+        return '200 OK', BaseSerializer(site.goods).save()

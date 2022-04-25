@@ -1,16 +1,17 @@
-
-
+import sqlite3
+from patterns.architectural_system_pattern_unit_of_work import DomainObject, UnitOfWork
 from patterns.behavioral_patterns import Subject, EmailNotifier, SmsNotifier, ConsoleWriter
 import copy
 import quopri
 
+
 # абстрактный пользователь
 
 
-
-class User:
+class User(DomainObject):
     def __init__(self, name):
         self.name = name
+
 
 # гость
 class Guest(User):
@@ -35,6 +36,13 @@ class UserFactory:
         'admin': Admin
     }
 
+    @classmethod
+    def types_from_admin(cls, name, goods, admin):
+        if admin:
+            return cls.types['admin'](name, goods)
+        else:
+            return cls.types['guest'](name, goods)
+
     # порождающий паттерн Фабричный метод
     @classmethod
     def create(cls, type_, name, goods):
@@ -46,6 +54,7 @@ class GoodsPrototype:
     # прототип курсов обучения
     def clone(self):
         return copy.deepcopy(self)
+
 
 class Goods(GoodsPrototype, Subject):
     auto_id = 1
@@ -75,6 +84,16 @@ class Goods(GoodsPrototype, Subject):
     def add_user_to_notify(self, user):
         self.notify_users.append(user)
 
+    def del_user_to_notify(self, user):
+        del_num = None
+        for i in range(len(self.notify_users)):
+            if self.notify_users[i].name == user.name:
+                del_num = i
+        try:
+            self.notify_users.pop(del_num)
+        except Exception as e:
+            print('Не удалось отключить напомнинания')
+
 
 class Category(GoodsPrototype):
     # реестр
@@ -99,12 +118,26 @@ class Category(GoodsPrototype):
         Category.auto_id += 1
         return super().clone()
 
+
 class Engine:
     def __init__(self):
+        UnitOfWork.new_current()
+        UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
         self.admins = []
         self.guests = []
         self.goods = []
         self.categories = []
+        self.create_test_data()
+        self.load_data_from_db()
+
+    def load_data_from_db(self):
+        all_users = MapperRegistry().get_current_mapper('guest').all(self)
+        for item in all_users:
+            if item.admin:
+                self.admins.append(item)
+            else:
+                self.guests.append(item)
+        print('Data base loaded')
 
     @staticmethod
     def create_user(type_, name, goods):
@@ -112,7 +145,20 @@ class Engine:
         if len(goods):
             for good in goods:
                 good.add_user_to_notify(user=new_user)
+        new_user.mark_new()
+        UnitOfWork.get_current().commit()
         return new_user
+
+    def delete_user(self, delete_user):
+        if not delete_user.admin:
+            del_num = None
+            for i in range(len(self.guests)):
+                if self.guests[i].name == delete_user.name:
+                    del_num = i
+            self.guests.pop(del_num)
+            for good in delete_user.goods:
+                good.del_user_to_notify(delete_user)
+            MapperRegistry().get_current_mapper('guest').delete(delete_user)
 
     @staticmethod
     def create_category(name, description='', visible=True, category=None):
@@ -124,7 +170,6 @@ class Engine:
             if item.id == id:
                 return item
         raise Exception(f'Нет категории с id = {id}')
-
 
     def find_category_by_name(self, name):
         for item in self.categories:
@@ -166,15 +211,14 @@ class Engine:
             self.admins.pop(user_num)
         if update_user['admin']:
             new = self.create_user(type_='admin',
-                                    name=self.decode_value(update_user['name']),
-                                    goods=goods_list)
+                                   name=self.decode_value(update_user['name']),
+                                   goods=goods_list)
             self.admins.append(new)
         else:
             new = self.create_user(type_='guest',
                                    name=self.decode_value(update_user['name']),
                                    goods=goods_list)
             self.guests.append(new)
-
 
     def delete_category(self, delete_category):
         # del_num = None
@@ -211,17 +255,16 @@ class Engine:
         for i in range(len(self.goods)):
             if self.goods[i].id == update_good['id']:
                 if update_good['price'] != old_good.cost:
-                    self.goods[i].notify({'price': {'old':old_good.cost,
-                                                    'new':update_good['price']}})
+                    self.goods[i].notify({'price': {'old': old_good.cost,
+                                                    'new': update_good['price']}})
                 elif update_good['discount'] != old_good.discount:
                     self.goods[i].notify({'discount': {'old': old_good.discount,
-                                                    'new': update_good['discount']}})
+                                                       'new': update_good['discount']}})
                 self.goods[i].name = update_good['name']
                 self.goods[i].description = update_good['desc']
                 self.goods[i].cost = update_good['price']
                 self.goods[i].discount = update_good['discount']
                 self.goods[i].category = self.find_category_by_id(int(update_good['category']))
-
 
     def delete_good(self, delete_good):
         # del_num = None
@@ -244,25 +287,45 @@ class Engine:
 
     def create_test_data(self):
         new_category = self.create_category(name='Test',
-                             description='тест',
-                             visible=True,
-                             category=None)
+                                            description='тест',
+                                            visible=True,
+                                            category=None)
         self.categories.append(new_category)
         new_good = self.create_good(name='Good_Test',
-                         description='описание товара',
-                         image=None,
-                         discount=10,
-                         visible=True,
-                         cost=1234,
-                         category=self.categories[0]
-                         )
+                                    description='описание товара',
+                                    image=None,
+                                    discount=10,
+                                    visible=True,
+                                    cost=1234,
+                                    category=self.categories[0]
+                                    )
         new_good.observers.append(EmailNotifier())
         new_good.observers.append(SmsNotifier())
         self.goods.append(new_good)
-        new_admin = self.create_user('admin', name='admin', goods=[new_good])
-        self.admins.append(new_admin)
-        new_guest = self.create_user('guest', name='user', goods=[])
-        self.guests.append(new_guest)
+        new_good2 = self.create_good(name='Good_Test2',
+                                    description='описание товара',
+                                    image=None,
+                                    discount=10,
+                                    visible=True,
+                                    cost=12345,
+                                    category=self.categories[0]
+                                    )
+        new_good2.observers.append(EmailNotifier())
+        new_good2.observers.append(SmsNotifier())
+        self.goods.append(new_good2)
+        # new_admin = self.create_user('admin', name='admin', goods=[new_good])
+        # self.admins.append(new_admin)
+        # new_guest = self.create_user('guest', name='user', goods=[])
+        # self.guests.append(new_guest)
+
+    def create_goods_list_by_id(self, good_sub):
+        goods_list = []
+        if good_sub:
+            good_id = good_sub.split('_')
+            for id in good_id:
+                goods_list.append(self.find_good_by_id(int(id)))
+        return goods_list
+
 
 # порождающий паттерн Синглтон
 class SingletonByName(type):
@@ -294,8 +357,129 @@ class Logger(metaclass=SingletonByName):
         text = f'log---> {text}'
         self.writer.write(text)
 
+
 # поведенческий паттерн - Шаблонный метод
 
 
+class UserMapper:
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.tablename = 'users'
+        self.start()
 
 
+    def start(self):
+        table = f"CREATE TABLE IF NOT EXISTS {self.tablename}(" \
+                f"id INTEGER PRIMARY KEY," \
+                f"name TEXT UNIQUE," \
+                f"good_sub TEXT," \
+                f"admin BOOL)"
+        self.cursor.execute(table)
+        self.connection.commit()
+
+    def all(self, engine_obj):
+        statement = f'SELECT * from {self.tablename}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, name, good_sub, admin = item
+            goods_list = engine_obj.create_goods_list_by_id(good_sub)
+            user = UserFactory.types_from_admin(name=name, goods=goods_list, admin=admin)
+            user.id = id
+            result.append(user)
+        return result
+
+    def find_by_id(self, id, engine_obj):
+        statement = f"SELECT id, name, good_sub, admin FROM {self.tablename} WHERE id=?"
+        self.cursor.execute(statement, (id,))
+        result = self.cursor.fetchone()
+
+        if result:
+            id, name, good_sub, admin = result
+            goods_list = engine_obj.create_goods_list_by_id(good_sub)
+            user = UserFactory.types_from_admin(name=name, goods=goods_list, admin=admin)
+            user.id = id
+            return user
+        else:
+            raise RecordNotFoundException(f'record with id={id} not found')
+
+    def insert(self, obj):
+        goods_id_str = ''
+        for item in obj.goods:
+            if len(goods_id_str):
+                goods_id_str = f'{goods_id_str}_{item.id}'
+            else:
+                goods_id_str = f'{item.id}'
+        try:
+            statement = f"INSERT INTO {self.tablename} (name, good_sub, admin) VALUES (?, ?, ?)"
+            self.cursor.execute(statement, (obj.name, goods_id_str, obj.admin))
+            try:
+                self.connection.commit()
+            except Exception as e:
+                raise DbCommitException(e.args)
+        except sqlite3.IntegrityError:
+            print('Отмена записи нового пользователя в БД. Пользователь с таким именем уже существует.')
+
+    def update(self, obj):
+        statement = f"UPDATE {self.tablename} SET name=?, good_sub=?, admin=? WHERE id=?"
+        # Где взять obj.id? Добавить в DomainModel? Или добавить когда берем объект из базы
+        self.cursor.execute(statement, (obj.name, obj.goods, obj.admin, obj.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbUpdateException(e.args)
+
+    def delete(self, obj):
+        statement = f"DELETE FROM {self.tablename} WHERE name=?"
+        self.cursor.execute(statement, (obj.name,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbDeleteException(e.args)
+
+
+connection = sqlite3.connect('patterns.sqlite')
+
+
+# архитектурный системный паттерн - Data Mapper
+class MapperRegistry:
+    mappers = {
+        'guest': UserMapper,
+        'admin': UserMapper,
+        # 'category': CategoryMapper
+    }
+
+    @staticmethod
+    def get_mapper(obj):
+        if isinstance(obj, User):
+            return UserMapper(connection)
+        if isinstance(obj, Admin):
+            return UserMapper(connection)
+        # if isinstance(obj, Category):
+        # return CategoryMapper(connection)
+
+    @staticmethod
+    def get_current_mapper(name):
+        return MapperRegistry.mappers[name](connection)
+
+
+class DbCommitException(Exception):
+    def __init__(self, message):
+        super().__init__(f'Db commit error: {message}')
+
+
+class DbUpdateException(Exception):
+    def __init__(self, message):
+        super().__init__(f'Db update error: {message}')
+
+
+class DbDeleteException(Exception):
+    def __init__(self, message):
+        super().__init__(f'Db delete error: {message}')
+
+
+class RecordNotFoundException(Exception):
+    def __init__(self, message):
+        super().__init__(f'Record not found: {message}')
