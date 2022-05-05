@@ -6,8 +6,8 @@ from patterns.structural_patterns import AppRoute, Debug
 site = Engine()
 logger = Logger('main')
 
-email_notifier = EmailNotifier()
-sms_notifier = SmsNotifier()
+# email_notifier = EmailNotifier()
+# sms_notifier = SmsNotifier()
 routes = {}
 
 
@@ -119,6 +119,8 @@ class CategoryCopyView(TemplateView):
                 new_category.id = len(site.categories) + 1
                 new_category.goods = []
                 site.categories.append(new_category)
+                new_category.mark_new()
+                UnitOfWork.get_current().commit()
         self.context['objects_list'] = site.categories
         return super().__call__(self)
 
@@ -169,8 +171,8 @@ class GoodsCreateView(CreateView):
                                     cost=float(data['good_price']),
                                     category=site.find_category_by_id(int(category_id))
                                     )
-            good.observers.append(email_notifier)
-            good.observers.append(sms_notifier)
+            # good.observers.append(email_notifier)
+            # good.observers.append(sms_notifier)
             site.goods.append(good)
 
     def add_context_data(self, **kwargs):
@@ -195,6 +197,8 @@ class GoodsCopyView(TemplateView):
                     if site.categories[i].id == new_good.category.id:
                         site.categories[i].goods.append(new_good)
                 site.goods.append(new_good)
+                new_good.mark_new()
+                UnitOfWork.get_current().commit()
         self.context['objects_list'] = site.goods
         return super().__call__(self)
 

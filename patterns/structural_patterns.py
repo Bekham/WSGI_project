@@ -38,6 +38,7 @@ class Debug:
             def timed(*args, **kw):
                 self.name = args[0].__class__.__name__
                 ts = time()
+                ts = time()
                 result = method(*args, **kw)
                 te = time()
                 delta = te - ts

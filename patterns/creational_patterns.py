@@ -6,6 +6,8 @@ import quopri
 
 
 # абстрактный пользователь
+email_notifier = EmailNotifier()
+sms_notifier = SmsNotifier()
 
 
 class User(DomainObject):
@@ -56,10 +58,10 @@ class GoodsPrototype:
         return copy.deepcopy(self)
 
 
-class Goods(GoodsPrototype, Subject):
+class Goods(GoodsPrototype, Subject, DomainObject):
     auto_id = 1
 
-    def __init__(self, name, description, image, discount, cost, visible, category):
+    def __init__(self, name, description, image, discount, cost, visible, category, notify_users=None):
         self.id = Goods.auto_id
         Goods.auto_id += 1
         self.name = name
@@ -70,7 +72,10 @@ class Goods(GoodsPrototype, Subject):
         self.visible = visible
         self.category = category
         self.category.goods.append(self)
-        self.notify_users = []
+        if notify_users:
+            self.notify_users = notify_users
+        else:
+            self.notify_users = []
         super().__init__()
 
     def __call__(self, *args, **kwargs):
@@ -95,7 +100,7 @@ class Goods(GoodsPrototype, Subject):
             print('Не удалось отключить напомнинания')
 
 
-class Category(GoodsPrototype):
+class Category(GoodsPrototype, DomainObject):
     # реестр
     auto_id = 1
 
@@ -127,16 +132,25 @@ class Engine:
         self.guests = []
         self.goods = []
         self.categories = []
-        self.create_test_data()
         self.load_data_from_db()
 
     def load_data_from_db(self):
+        all_categories = MapperRegistry().get_current_mapper('category').all(self)
+        for item in all_categories:
+            self.categories.append(item)
+        all_goods = MapperRegistry().get_current_mapper('good').all(self)
+        for item in all_goods:
+            self.goods.append(item)
         all_users = MapperRegistry().get_current_mapper('guest').all(self)
         for item in all_users:
             if item.admin:
                 self.admins.append(item)
             else:
                 self.guests.append(item)
+        for i in range(len(self.goods)):
+            if self.goods[i].notify_users:
+                self.goods[i].notify_users = self.create_notify_users_list(self.goods[i].notify_users)
+
         print('Data base loaded')
 
     @staticmethod
@@ -162,7 +176,10 @@ class Engine:
 
     @staticmethod
     def create_category(name, description='', visible=True, category=None):
-        return Category(name, description, visible, category)
+        new_category = Category(name, description, visible, category)
+        new_category.mark_new()
+        UnitOfWork.get_current().commit()
+        return new_category
 
     def find_category_by_id(self, id):
         for item in self.categories:
@@ -192,6 +209,7 @@ class Engine:
                 self.categories[i].name = update_category['name']
                 self.categories[i].description = update_category['desc']
                 self.categories[i].category = update_category['parent_category']
+                MapperRegistry().get_current_mapper('category').update(self.categories[i])
 
     def update_user(self, update_user, old_profile):
         goods_list = []
@@ -226,6 +244,7 @@ class Engine:
             if self.categories[i].id == delete_category.id:
                 self.categories[i].visible = False
                 # del_num = i
+                MapperRegistry().get_current_mapper('category').update(self.categories[i])
         # self.categories.pop(del_num)
 
     @staticmethod
@@ -236,7 +255,12 @@ class Engine:
                     visible=True,
                     cost=0,
                     category=None):
-        return Goods(name, description, image, discount, cost, visible, category)
+        new_good = Goods(name, description, image, discount, cost, visible, category, notify_users=[])
+        new_good.observers.append(email_notifier)
+        new_good.observers.append(sms_notifier)
+        new_good.mark_new()
+        UnitOfWork.get_current().commit()
+        return new_good
 
     def get_good(self, name):
         for item in self.goods:
@@ -265,12 +289,14 @@ class Engine:
                 self.goods[i].cost = update_good['price']
                 self.goods[i].discount = update_good['discount']
                 self.goods[i].category = self.find_category_by_id(int(update_good['category']))
+                MapperRegistry().get_current_mapper('good').update(self.goods[i])
 
     def delete_good(self, delete_good):
         # del_num = None
         for i in range(len(self.goods)):
             if self.goods[i].id == delete_good.id:
                 self.goods[i].visible = False
+                MapperRegistry().get_current_mapper('good').update(self.goods[i])
         #         del_num = i
         # self.goods.pop(del_num)
 
@@ -285,46 +311,27 @@ class Engine:
             if item.name == name:
                 return item
 
-    def create_test_data(self):
-        new_category = self.create_category(name='Test',
-                                            description='тест',
-                                            visible=True,
-                                            category=None)
-        self.categories.append(new_category)
-        new_good = self.create_good(name='Good_Test',
-                                    description='описание товара',
-                                    image=None,
-                                    discount=10,
-                                    visible=True,
-                                    cost=1234,
-                                    category=self.categories[0]
-                                    )
-        new_good.observers.append(EmailNotifier())
-        new_good.observers.append(SmsNotifier())
-        self.goods.append(new_good)
-        new_good2 = self.create_good(name='Good_Test2',
-                                    description='описание товара',
-                                    image=None,
-                                    discount=10,
-                                    visible=True,
-                                    cost=12345,
-                                    category=self.categories[0]
-                                    )
-        new_good2.observers.append(EmailNotifier())
-        new_good2.observers.append(SmsNotifier())
-        self.goods.append(new_good2)
-        # new_admin = self.create_user('admin', name='admin', goods=[new_good])
-        # self.admins.append(new_admin)
-        # new_guest = self.create_user('guest', name='user', goods=[])
-        # self.guests.append(new_guest)
 
     def create_goods_list_by_id(self, good_sub):
         goods_list = []
         if good_sub:
-            good_id = good_sub.split('_')
+            good_id = good_sub.split('&')
             for id in good_id:
                 goods_list.append(self.find_good_by_id(int(id)))
         return goods_list
+
+    def create_notify_users_list(self, notify_users):
+        notify = []
+        if notify_users:
+            notify_users_list = notify_users.split('&')
+            for user_name in notify_users_list:
+                for admin in self.admins:
+                    if admin.name == user_name:
+                        notify.append(admin)
+                for guest in self.guests:
+                    if guest.name == user_name:
+                        notify.append(guest)
+        return notify
 
 
 # порождающий паттерн Синглтон
@@ -369,7 +376,6 @@ class UserMapper:
         self.tablename = 'users'
         self.start()
 
-
     def start(self):
         table = f"CREATE TABLE IF NOT EXISTS {self.tablename}(" \
                 f"id INTEGER PRIMARY KEY," \
@@ -409,7 +415,7 @@ class UserMapper:
         goods_id_str = ''
         for item in obj.goods:
             if len(goods_id_str):
-                goods_id_str = f'{goods_id_str}_{item.id}'
+                goods_id_str = f'{goods_id_str}&{item.id}'
             else:
                 goods_id_str = f'{item.id}'
         try:
@@ -440,6 +446,233 @@ class UserMapper:
             raise DbDeleteException(e.args)
 
 
+class CategoryMapper:
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.tablename = 'category'
+        self.start()
+
+    def start(self):
+        table = f"CREATE TABLE IF NOT EXISTS {self.tablename}(" \
+                f"id INTEGER UNIQUE," \
+                f"name TEXT UNIQUE," \
+                f"description TEXT," \
+                f"visible BOOL," \
+                f"category TEXT," \
+                f"goods TEXT)"
+        self.cursor.execute(table)
+        self.connection.commit()
+
+    def all(self, engine_obj):
+        statement = f'SELECT * from {self.tablename}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, name, description, visible, category_id, goods = item
+            if category_id:
+                category_id = int(category_id)
+            new_category = Category(name=name,
+                                    description=description,
+                                    visible=visible,
+                                    category=category_id)
+            new_category.id = id
+            result.append(new_category)
+        for i in range(len(result)):
+            if result[i].category:
+                result[i].category = [category for category in result if category.id == result[i].category][0]
+
+        return result
+
+    def find_by_id(self, id, engine_obj):
+        statement = f"SELECT id, name, good_sub, admin FROM {self.tablename} WHERE id=?"
+        self.cursor.execute(statement, (id,))
+        result = self.cursor.fetchone()
+
+        if result:
+            id, name, description, visible, category, goods = result
+            goods_list = engine_obj.create_goods_list_by_id(goods)
+            if category:
+                parent_category = engine_obj.find_category_by_id(int(category))
+            else:
+                parent_category = None
+            new_category = engine_obj.create_category(name=name,
+                                                      description=description,
+                                                      visible=visible,
+                                                      category=parent_category)
+            new_category.id = id
+            new_category.goods = goods_list
+            return new_category
+        else:
+            raise RecordNotFoundException(f'record with id={id} not found')
+
+    def insert(self, obj):
+        goods_id_str = ''
+        for item in obj.goods:
+            if len(goods_id_str):
+                goods_id_str = f'{goods_id_str}_{item.id}'
+            else:
+                goods_id_str = f'{item.id}'
+        if obj.category:
+            parent_category = obj.category.id
+        else:
+            parent_category = None
+        try:
+            statement = f"INSERT INTO {self.tablename} (id, name, description, visible, category, goods) VALUES (?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(statement,
+                                (int(obj.id), obj.name, obj.description, obj.visible, parent_category, goods_id_str))
+            try:
+                self.connection.commit()
+            except Exception as e:
+                raise DbCommitException(e.args)
+        except sqlite3.IntegrityError:
+            print('Отмена записи новой категории в БД. Категория с таким именем уже существует.')
+
+    def update(self, obj):
+        goods_id_str = ''
+        if len(obj.goods):
+            goods_id_str += f'{obj.goods.id}_'
+        if obj.category:
+            parent_category = obj.category.id
+        else:
+            parent_category = None
+        statement = f"UPDATE {self.tablename} SET name=?, description=?, visible=?, category=?, goods=? WHERE id=?"
+        self.cursor.execute(statement,
+                            (obj.name, obj.description, obj.visible, parent_category, goods_id_str[:-1], obj.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbUpdateException(e.args)
+
+    def delete(self, obj):
+        statement = f"DELETE FROM {self.tablename} WHERE id=?"
+        self.cursor.execute(statement, (obj.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbDeleteException(e.args)
+
+
+class GoodMapper:
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.tablename = 'good'
+        self.start()
+
+    def start(self):
+        table = f"CREATE TABLE IF NOT EXISTS {self.tablename}(" \
+                f"id INTEGER UNIQUE," \
+                f"name TEXT UNIQUE," \
+                f"description TEXT," \
+                f"image TEXT," \
+                f"discount REAL," \
+                f"cost REAL," \
+                f"visible BOOL," \
+                f"category TEXT," \
+                f"notify_users TEXT)"
+        self.cursor.execute(table)
+        self.connection.commit()
+
+    def all(self, engine_obj):
+        statement = f'SELECT * from {self.tablename}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, name, description, image, discount, cost, visible, category_id, notify_users = item
+            category_id = [category for category in engine_obj.categories if category.id == int(category_id)][0]
+            # notify = engine_obj.create_notify_users_list(notify_users)
+            new_good = Goods(name=name,
+                             description=description,
+                             image=image,
+                             discount=discount,
+                             cost=cost,
+                             visible=visible,
+                             category=category_id,
+                             notify_users=notify_users)
+            new_good.id = id
+            new_good.observers.append(email_notifier)
+            new_good.observers.append(sms_notifier)
+            result.append(new_good)
+        return result
+
+    def find_by_id(self, id, engine_obj):
+        statement = f"SELECT id, name, description, image, discount, cost, visible, category_id, notify_users FROM {self.tablename} WHERE id=?"
+        self.cursor.execute(statement, (id,))
+        result = self.cursor.fetchone()
+
+        if result:
+            id, name, description, image, discount, cost, visible, category_id, notify_users = result
+            goods_list = engine_obj.create_notify_users_list(notify_users)
+            if category_id:
+                parent_category = engine_obj.find_category_by_id(int(category_id))
+            else:
+                parent_category = None
+            new_good = Goods(name=name,
+                             description=description,
+                             image=image,
+                             discount=discount,
+                             cost=cost,
+                             visible=visible,
+                             category=category_id,
+                             notify_users=notify_users)
+            new_good.id = id
+            return new_good
+        else:
+            raise RecordNotFoundException(f'record with id={id} not found')
+
+    def insert(self, obj):
+        notify_id_str = ''
+        for item in obj.notify_users:
+            if len(notify_id_str):
+                notify_id_str = f'{notify_id_str}_{item.name}'
+            else:
+                notify_id_str = f'{item.name}'
+        if obj.category:
+            parent_category = obj.category.id
+        else:
+            parent_category = None
+        try:
+            statement = f"INSERT INTO {self.tablename} (id, name, description, image, discount, cost, visible, category, notify_users) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(statement,
+                                (int(obj.id), obj.name, obj.description, obj.image, obj.discount, obj.cost, obj.visible, parent_category, notify_id_str))
+            try:
+                self.connection.commit()
+            except Exception as e:
+                raise DbCommitException(e.args)
+        except sqlite3.IntegrityError:
+            print('Отмена записи новой категории в БД. Товар с таким именем уже существует.')
+
+    def update(self, obj):
+        notify_id_str = ''
+        for item in obj.notify_users:
+            if len(notify_id_str):
+                notify_id_str = f'{notify_id_str}_{item.name}'
+            else:
+                notify_id_str = f'{item.name}'
+        if obj.category:
+            parent_category = obj.category.id
+        else:
+            parent_category = None
+        statement = f"UPDATE {self.tablename} SET name=?, description=?, image=?, discount=?, cost=?, visible=?, category=?, notify_users=? WHERE id=?"
+        self.cursor.execute(statement,
+                            (obj.name, obj.description, obj.image, obj.discount, obj.cost, obj.visible, parent_category, notify_id_str, obj.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbUpdateException(e.args)
+
+    def delete(self, obj):
+        statement = f"DELETE FROM {self.tablename} WHERE id=?"
+        self.cursor.execute(statement, (obj.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DbDeleteException(e.args)
+
+
 connection = sqlite3.connect('patterns.sqlite')
 
 
@@ -448,7 +681,8 @@ class MapperRegistry:
     mappers = {
         'guest': UserMapper,
         'admin': UserMapper,
-        # 'category': CategoryMapper
+        'category': CategoryMapper,
+        'good': GoodMapper
     }
 
     @staticmethod
@@ -457,8 +691,10 @@ class MapperRegistry:
             return UserMapper(connection)
         if isinstance(obj, Admin):
             return UserMapper(connection)
-        # if isinstance(obj, Category):
-        # return CategoryMapper(connection)
+        if isinstance(obj, Category):
+            return CategoryMapper(connection)
+        if isinstance(obj, Goods):
+            return GoodMapper(connection)
 
     @staticmethod
     def get_current_mapper(name):
